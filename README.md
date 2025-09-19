@@ -23,7 +23,7 @@ Para configurar um projeto específico, navegue até o seu diretório e siga as 
 
 O `security-llm-agent` é o componente responsável pela análise de segurança.
 
-**As instruções detalhadas de instalação e uso do submódulo está contido no [README](./security-llm-agent/README.md) dele.**
+**As instruções detalhadas de instalação e uso do submódulo está contido no [README](https://github.com/hugoprd/security-llm-agent.git) dele.**
 
 ## 3. Fluxo de trabalho
 
