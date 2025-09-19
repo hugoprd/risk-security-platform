@@ -10,7 +10,7 @@ Clone o repositório através do comando abaixo:
 
 Linux.
 ```bash
-git clone [https://github.com/hugoprd/risk-security-platform.git](https://github.com/hugoprd/risk-security-platform.git)
+git clone https://github.com/hugoprd/risk-security-platform.git
 cd risk-security-platform
 git submodule update --init --recursive
 ```
