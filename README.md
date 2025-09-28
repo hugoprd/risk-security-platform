@@ -33,7 +33,7 @@ Para contribuir com este projeto, siga os passos a partir do [CONTRIBUTING](CONT
 
 ```bash
 cd ~/git/risk-security-platform/
-git pull -all
+git pull --all
 git checkout <branchname>
 git status
 git pull --recurse-submodules
