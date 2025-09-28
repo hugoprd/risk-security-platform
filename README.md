@@ -4,11 +4,35 @@ Esse projeto é sobre um programa que, ao usuário colocar uma atividade desejad
 
 ## Passo a passo
 
+### 0. (EXTRA) Se você estiver utilizando Windows
+
+**0.1 Instalação do VSCode**
+
+O VSCode será a IDE recomendada para o manejo deste projeto
+
+**0.2 Definição do perfil bash para o terminal do VSCode**
+
+1. Pressione `CTRL + SHIFT + P`
+2. Digite `Preferences: Open User Settings (JSON)` e pressione enter
+3. Será aberto o arquivo `settings.json`
+    1. Cole esse código no `settings.json`:
+    ```bash
+    "terminal.integrated.profiles.windows": {
+        "Git Bash": {
+            "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+            "source": "Git Bash"
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "Git Bash"
+    ```
+4. Dê `CTRL + S` e feche o arquivo
+5. Feche e abra o VSCode
+
 ### 1. Clonagem do repositório
 
 Clone o repositório através do comando abaixo:
 
-Linux.
+**Windows (com terminal Bash) & Linux.**
 ```bash
 git clone https://github.com/hugoprd/risk-security-platform.git
 cd risk-security-platform
@@ -31,6 +55,7 @@ Para contribuir com este projeto, siga os passos a partir do [CONTRIBUTING](CONT
 
 ## 4. Recepção de alteração nos submódulos
 
+**Windows (com terminal Bash) & Linux.**
 ```bash
 cd ~/git/risk-security-platform/
 git pull --all
