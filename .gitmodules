@@ -1,0 +1,3 @@
+[submodule "security-llm-agent"]
+	path = security-llm-agent
+	url = https://github.com/hugoprd/security-llm-agent.git
