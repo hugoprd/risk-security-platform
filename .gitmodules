@@ -1,3 +1,0 @@
-[submodule "components/ui"]
-	path = components/ui
-	url = https://github.com/hugoprd/security-llm-agent.git
