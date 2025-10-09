@@ -18,5 +18,13 @@
         "titleBar.inactiveBackground": "#83256199",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.color": "#832561"
+    "peacock.color": "#832561",
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "python-envs.pythonProjects": [],
+    "python.testing.pytestArgs": [
+        "security-llm-agent/tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }
