@@ -1,0 +1,114 @@
+package com.example.backend_vuln.controller;
+
+import com.example.backend_vuln.model.Vulnerabilidade;
+import com.example.backend_vuln.repository.VulnerabilidadeRepository;
+import com.example.backend_vuln.service.CvssService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import com.example.backend_vuln.model.Usuario;
+import com.example.backend_vuln.repository.UsuarioRepository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/vulnerabilidades")
+public class VulnerabilidadeController {
+
+    @Autowired
+    private VulnerabilidadeRepository repository;
+
+    @Autowired
+    private CvssService cvssService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    // UC01: Cadastrar Nova Vulnerabilidade
+    @PostMapping("/usuario/{idUsuario}")
+    public Vulnerabilidade cadastrarVulnerabilidade(@PathVariable Long idUsuario,
+                                                    @RequestBody Vulnerabilidade novaVulnerabilidade) {
+
+        // 1. Busca o usuário no banco
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
+
+        // 2. Seta o usuário na vulnerabilidade
+        novaVulnerabilidade.setUsuario(usuario);
+
+        // 3. Calcula e preenche o CVSS
+        cvssService.calcularEPreencherCvss(novaVulnerabilidade);
+
+        // 4. Define a data de registro
+        novaVulnerabilidade.setData_registro(LocalDateTime.now());
+
+        // 5. Salva no banco
+        return repository.save(novaVulnerabilidade);
+    }
+
+
+    // UC02: Listar Todas as Vulnerabilidades
+    @GetMapping
+    public List<Vulnerabilidade> listarVulnerabilidades() {
+        return repository.findAll();
+    }
+
+
+    //UC05: Visualizar Detalhes de uma Vulnerabilidade
+    @GetMapping("/{id}")
+    public Vulnerabilidade buscarPorId(@PathVariable Long id) {
+        // Usa o repository para buscar pelo ID
+        // Se não encontrar, lança uma exceção (404 - Not Found)
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vulnerabilidade não encontrada com id: " + id));
+    }
+
+    // UC04: Editar Vulnerabilidade e Atualizar Status
+    @PutMapping("/{id}")
+    public Vulnerabilidade atualizarVulnerabilidade(@PathVariable Long id, @RequestBody Vulnerabilidade dadosAtualizados) {
+
+        // 1. Primeiro, busca a vulnerabilidade existente no banco
+        Vulnerabilidade vulnerabilidadeExistente = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vulnerabilidade não encontrada com id: " + id));
+
+        // 2. Atualiza os campos da vulnerabilidade existente com os novos dados
+        vulnerabilidadeExistente.setTitulo(dadosAtualizados.getTitulo());
+        vulnerabilidadeExistente.setDescricao(dadosAtualizados.getDescricao());
+        vulnerabilidadeExistente.setSistema_impactado(dadosAtualizados.getSistema_impactado());
+        vulnerabilidadeExistente.setCve(dadosAtualizados.getCve());
+        vulnerabilidadeExistente.setStatus(dadosAtualizados.getStatus()); // Muito usado para mudar de "ABERTA" para "CORRIGIDA"
+
+        // 3. Atualiza as métricas (se elas vierem no JSON de atualização)
+        if (dadosAtualizados.getMetricasCVSS() != null) {
+            // Pega o novo vetor
+            String novoVectorString = dadosAtualizados.getMetricasCVSS().getVectorString();
+            // Atualiza o vetor na entidade existente
+            vulnerabilidadeExistente.getMetricasCVSS().setVectorString(novoVectorString);
+        }
+
+        // 4. RECALCULA o CVSS
+        // Isso é crucial caso o vetor tenha sido alterado
+        cvssService.calcularEPreencherCvss(vulnerabilidadeExistente);
+
+        // 5. Salva a entidade ATUALIZADA de volta no banco
+        return repository.save(vulnerabilidadeExistente);
+    }
+
+    //UC (Extra): Deletar uma Vulnerabilidade
+    @DeleteMapping("/{id}")
+    public String deletarVulnerabilidade(@PathVariable Long id) {
+
+        // 1. Verifica se a vulnerabilidade existe antes de tentar deletar
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("Vulnerabilidade não encontrada com id: " + id);
+        }
+
+        // 2. Deleta do banco de dados
+        // (Graças ao CascadeType.ALL também deletará as MetricasCVSS associadas)
+        repository.deleteById(id);
+
+        // 3. Retorna uma mensagem de sucesso
+        return "Vulnerabilidade com id " + id + " foi deletada com sucesso.";
+    }
+
+}
