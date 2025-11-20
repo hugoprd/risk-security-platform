@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/vulnerabilidades")
+@CrossOrigin(origins = "*")
 public class VulnerabilidadeController {
 
     @Autowired

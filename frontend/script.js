@@ -1,41 +1,59 @@
-const BACKEND_URL = "http://localhost:8080/api/vulnerabilidades";
+const API_URL = "http://localhost:8080/api/vulnerabilidades";
 
-async function carregarVulnerabilidades(){
-    const tbody = document.getElementById('tabelaVulnerabilidades').getElementsByTagName('tbody')[0];
-    tbody.innerHTML = '<tr><td colspan="7">Carregando...</td></tr>';
+async function listarVulnerabilidades() {
+    const tabela = document.getElementById("tabela-corpo");
+    tabela.innerHTML = "<tr><td colspan='6'>Carregando...</td></tr>";
 
     try{
-        const response = await fetch(BACKEND_URL);
-        
-        if(!response.ok){
-            throw new Error(`Erro HTTP! Status: ${response.status}`);
-        }
-        
-        const vulnerabilidades = await response.json();
-        
-        tbody.innerHTML = '';
+        const resposta = await fetch(API_URL);
+        const lista = await resposta.json();
 
-        vulnerabilidades.forEach(v => {
-            const row = tbody.insertRow();
-            row.insertCell().textContent = v.id_vulnerabilidade;
-            row.insertCell().textContent = v.titulo;
-            row.insertCell().textContent = v.sistema_impactado;
-            row.insertCell().textContent = v.pontuacao_cvss;
-            row.insertCell().textContent = v.criticidade;
-            row.insertCell().textContent = v.status;
-            
-            // botão para chamar a IA
-            const cellIA = row.insertCell();
-            const btnIA = document.createElement('button');
-            btnIA.textContent = 'Gerar Recomendação';
-             
-            // aqui chama a função pra implementar a IA
-            btnIA.onclick = () => gerarRecomendacao(v.id_vulnerabilidade, row); 
-            cellIA.appendChild(btnIA);
+        tabela.innerHTML = "";
+
+        lista.forEach(vuln => {
+            const linha = tabela.insertRow();
+
+            linha.insertCell().innerText = vuln.id_vulnerabilidade;
+            linha.insertCell().innerText = vuln.titulo;
+            linha.insertCell().innerText = vuln.pontuacao_cvss;
+            linha.insertCell().innerText = vuln.status || "Aberto";
+
+            const celulaBotao = linha.insertCell();
+            const botao = document.createElement("button");
+            botao.innerText = "Consultar IA";
+            botao.className = "btn-ia";
+            botao.onclick = () => chamarAgenteIA(vuln.id_vulnerabilidade, linha);
+            celulaBotao.appendChild(botao);
+
+            linha.insertCell().className = "resposta-ia"; 
         });
     }
-    catch(error){
-        console.error("Erro ao carregar vulnerabilidades:", error);
-        tbody.innerHTML = `<tr><td colspan="7" style="color: red;">Erro: ${error.message}</td></tr>`;
+    catch(erro){
+        console.error(erro);
+        tabela.innerHTML = "<tr><td colspan='6' style='color:red'>Erro ao conectar com o Backend Java.</td></tr>";
+    }
+}
+
+async function chamarAgenteIA(id, linhaHTML){
+    const celulaResposta = linhaHTML.cells[5];
+    celulaResposta.innerHTML = "<span class='loading'>Consultando Agente LLM...</span>";
+
+    try{
+        const resposta = await fetch(`${API_URL}/${id}/recomendacao`, {
+            method: "POST"
+        });
+
+        if(resposta.ok){
+            const textoRecomendacao = await resposta.text(); 
+            
+            celulaResposta.innerText = textoRecomendacao;
+        }
+        else{
+            celulaResposta.innerText = "Erro ao processar IA.";
+        }
+    }
+    catch(erro){
+        console.error(erro);
+        celulaResposta.innerText = "Erro de conexão.";
     }
 }

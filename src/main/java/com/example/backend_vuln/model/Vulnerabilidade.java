@@ -47,8 +47,6 @@ public class Vulnerabilidade {
         return metricasCVSS;
     }
 
-
-
     public Long getId_vulnerabilidade() {
         return id_vulnerabilidade;
     }
@@ -127,5 +125,4 @@ public class Vulnerabilidade {
             metricasCVSS.setVulnerabilidade(this); // Mantém a ligação dos dois lados
         }
     }
-
 }
