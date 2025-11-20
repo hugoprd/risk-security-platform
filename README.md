@@ -53,7 +53,34 @@ O [security-llm-agent](https://github.com/hugoprd/security-llm-agent.git) é o c
 
 Para contribuir com este projeto, siga os passos a partir do [CONTRIBUTING](CONTRIBUTING.md)
 
-## 4. Recepção de alteração nos submódulos
+## 4. Executando o programa localmente
+
+### 4.1. Com VSCode
+
+Se estiver utilizando o VSCode como IDE, há necessidade de fazer os passos a seguir (não testei com outras IDE):
+
+1. Instale o [Apache Maven](https://maven.apache.org/download.cgi)
+2. Descompacte a pasta .zip
+3. Mova a pasta para C:/ProgramFiles/Apache/Maven/ (se esse diretório não existir pode criar manualmente)
+4. No terminal bash do VSCode, digite 
+```bash
+mvn -v
+```
+5. Estarei utilizando o DBaaS Neon para o meu Postgre, porém é possível utilizar da forma que desejar
+6. No diretório do projeto "src/main/resources/", adicione um arquivo chamado ```application-local.properties``` e cole isso:
+```bash
+spring.datasource.url=jdbc:{STRING_URL}
+spring.datasource.username={USERNAME}
+spring.datasource.password={PASSWORD}
+```
+Substitua os valores para o seu caso
+7. Rode:
+```bash
+mvn clean install -DskipTests
+java -jar target/backend-vuln-0.0.1-SNAPSHOT.jar
+```
+
+## 5. Recepção de alteração nos submódulos
 
 **Windows (com terminal Bash) & Linux.**
 ```bash

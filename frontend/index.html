@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Plataforma de Vulnerabilidade</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { cursor: pointer; padding: 5px 10px; }
+        .btn-ia { background-color: #4CAF50; color: white; border: none; }
+        .loading { color: orange; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>Painel de Vulnerabilidades</h1>
+    <button onclick="listarVulnerabilidades()">Carregar Lista</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>CVSS</th>
+                <th>Status</th>
+                <th>Ação (IA)</th> <th>Recomendação da IA</th> </tr>
+        </thead>
+        <tbody id="tabela-corpo">
+            </tbody>
+    </table>
+
+    <script src="script.js"></script>
+</body>
+</html>

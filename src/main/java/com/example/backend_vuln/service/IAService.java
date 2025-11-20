@@ -5,19 +5,19 @@ import com.example.backend_vuln.model.Vulnerabilidade;
 import org.springframework.stereotype.Service;
 
 @Service
-public class IAService {
-
-    public String gerarRecomendacao(Vulnerabilidade vul) {
-        // Monta o texto
+public class IAService{
+    public String gerarRecomendacao(Vulnerabilidade vul){
         String textoParaIA = "Analise a vulnerabilidade: " + vul.getTitulo() + 
                              ". Descrição: " + vul.getDescricao() + 
                              ". CVSS: " + vul.getPontuacao_cvss();
 
-        try {
+        try{
             // Chama o código do Hugo
             LlmAgentClient clienteHugo = new LlmAgentClient();
+
             return clienteHugo.getSuggestion(textoParaIA);
-        } catch (Exception e) {
+        }
+        catch(Exception e){
             return "Erro na IA: " + e.getMessage();
         }
     }
