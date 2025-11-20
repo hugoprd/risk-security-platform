@@ -24,6 +24,11 @@ public class VulnerabilidadeController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    // --- Injeção do serviço de IA ---
+    @Autowired
+    private com.example.backend_vuln.service.IAService iaService;
+    // -------------------------------------------------
+
     // UC01: Cadastrar Nova Vulnerabilidade
     @PostMapping("/usuario/{idUsuario}")
     public Vulnerabilidade cadastrarVulnerabilidade(@PathVariable Long idUsuario,
@@ -58,7 +63,7 @@ public class VulnerabilidadeController {
     @GetMapping("/{id}")
     public Vulnerabilidade buscarPorId(@PathVariable Long id) {
         // Usa o repository para buscar pelo ID
-        // Se não encontrar, lança uma exceção (404 - Not Found)
+        // Se não encontrar, lança uma exceção
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vulnerabilidade não encontrada com id: " + id));
     }
@@ -67,7 +72,7 @@ public class VulnerabilidadeController {
     @PutMapping("/{id}")
     public Vulnerabilidade atualizarVulnerabilidade(@PathVariable Long id, @RequestBody Vulnerabilidade dadosAtualizados) {
 
-        // 1. Primeiro, busca a vulnerabilidade existente no banco
+        // 1. busca a vulnerabilidade existente no banco
         Vulnerabilidade vulnerabilidadeExistente = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vulnerabilidade não encontrada com id: " + id));
 
@@ -78,7 +83,7 @@ public class VulnerabilidadeController {
         vulnerabilidadeExistente.setCve(dadosAtualizados.getCve());
         vulnerabilidadeExistente.setStatus(dadosAtualizados.getStatus()); // Muito usado para mudar de "ABERTA" para "CORRIGIDA"
 
-        // 3. Atualiza as métricas (se elas vierem no JSON de atualização)
+        // 3. Atualiza as métricas 
         if (dadosAtualizados.getMetricasCVSS() != null) {
             // Pega o novo vetor
             String novoVectorString = dadosAtualizados.getMetricasCVSS().getVectorString();
@@ -87,7 +92,7 @@ public class VulnerabilidadeController {
         }
 
         // 4. RECALCULA o CVSS
-        // Isso é crucial caso o vetor tenha sido alterado
+        // caso o vetor tenha sido alterado
         cvssService.calcularEPreencherCvss(vulnerabilidadeExistente);
 
         // 5. Salva a entidade ATUALIZADA de volta no banco
@@ -110,5 +115,17 @@ public class VulnerabilidadeController {
         // 3. Retorna uma mensagem de sucesso
         return "Vulnerabilidade com id " + id + " foi deletada com sucesso.";
     }
+
+    // --- ADIÇÃO: Endpoint de Integração com IA ---
+    @PostMapping("/{id}/recomendacao")
+    public String gerarRecomendacao(@PathVariable Long id) {
+        // Busca a vulnerabilidade
+        Vulnerabilidade vul = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vulnerabilidade não encontrada"));
+
+        // Chama o serviço Wrapper
+        return iaService.gerarRecomendacao(vul);
+    }
+    // ---------------------------------------------
 
 }
