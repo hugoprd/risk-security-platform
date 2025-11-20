@@ -67,13 +67,12 @@ Se estiver utilizando o VSCode como IDE, há necessidade de fazer os passos a se
 mvn -v
 ```
 5. Estarei utilizando o DBaaS Neon para o meu Postgre, porém é possível utilizar da forma que desejar
-6. No diretório do projeto "src/main/resources/", adicione um arquivo chamado ```application-local.properties``` e cole isso:
+6. No diretório do projeto "src/main/resources/", adicione um arquivo chamado ```application-local.properties``` e cole isso e substitua os valores para o seu caso:
 ```bash
 spring.datasource.url=jdbc:{STRING_URL}
 spring.datasource.username={USERNAME}
 spring.datasource.password={PASSWORD}
 ```
-Substitua os valores para o seu caso
 7. Rode:
 ```bash
 mvn clean install -DskipTests
