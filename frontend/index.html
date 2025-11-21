@@ -2,34 +2,92 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Plataforma de Vulnerabilidade</title>
+    <title>Plataforma de Segurança</title>
     <style>
         body { font-family: sans-serif; padding: 20px; }
+        .tela { max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; margin-top: 10px;}
+        button:hover { background-color: #0056b3; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        button { cursor: pointer; padding: 5px 10px; }
-        .btn-ia { background-color: #4CAF50; color: white; border: none; }
-        .loading { color: orange; font-style: italic; }
+        .oculto { display: none; }
     </style>
 </head>
 <body>
-    <h1>Painel de Vulnerabilidades</h1>
-    <button onclick="listarVulnerabilidades()">Carregar Lista</button>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Título</th>
-                <th>CVSS</th>
-                <th>Status</th>
-                <th>Ação (IA)</th> <th>Recomendação da IA</th> </tr>
-        </thead>
-        <tbody id="tabela-corpo">
-            </tbody>
-    </table>
+    <div id="tela-login" class="tela">
+        <h1>Login</h1>
+        <form id="formLogin">
+            <input type="email" id="loginEmail" placeholder="Seu Email" required>
+            <input type="password" id="loginSenha" placeholder="Sua Senha" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <p id="feedbackLogin" style="color: red;"></p>
+        <hr>
+        <p>Não tem conta? <a href="#" onclick="irParaCadastro()">Cadastre-se aqui</a></p>
+    </div>
 
-    <script src="script.js"></script>
+    <div id="tela-cadastro" class="tela oculto">
+        <h2>Novo Cadastro</h2>
+        <form id="formUsuario">
+            <input type="text" id="nome" placeholder="Nome Completo" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="senha" placeholder="Senha" required>
+            <select id="tipo_usuario">
+                <option value="ANALISTA_SEGURANCA">ANALISTA_SEGURANCA</option>
+                <option value="GESTOR_SEGURANCA">GESTOR_SEGURANCA</option>
+            </select>
+            <button type="submit" style="background-color: #28a745;">Criar Conta</button>
+        </form>
+        <button onclick="voltarParaLogin()" style="background-color: #6c757d;">Voltar para Login</button>
+        <p id="feedbackUsuario"></p>
+    </div>
+
+    <div id="painel-principal" class="oculto">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>Painel de Vulnerabilidades</h1>
+            <div>
+                <span id="msgBemVindo" style="font-weight: bold; margin-right: 10px;"></span>
+                <button onclick="logout()" style="width: auto; background-color: #dc3545;">Sair</button>
+            </div>
+        </div>
+
+        <input type="hidden" id="idUsuarioLogado">
+
+        <div class="tela" style="max-width: 800px;">
+            <h3>Nova Análise</h3>
+            <form id="formVulnerabilidade">
+                <input type="text" id="titulo" placeholder="Título da Vulnerabilidade" required>
+                <textarea id="descricao" placeholder="Descrição técnica..." rows="4" required></textarea>
+                <input type="text" id="sistema_impactado" placeholder="Sistema Impactado">
+                <select id="status">
+                    <option value="ABERTA">ABERTA</option>
+                    <option value="EM_ANDAMENTO">EM_ANDAMENTO</option>
+                </select>
+                <input type="text" id="vectorString" placeholder="Vetor CVSS (Ex: CVSS:3.1/AV:N/AC:L...)">
+                <button type="submit">Registrar Vulnerabilidade</button>
+            </form>
+            <p id="feedbackVulnerabilidade"></p>
+        </div>
+
+        <h3>Lista de Vulnerabilidades</h3>
+        <button onclick="listarVulnerabilidades()" style="width: auto; margin-bottom: 10px;">Atualizar Lista</button>
+        <table id="tabelaVulnerabilidades">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>CVSS</th>
+                    <th>Status</th>
+                    <th>Ação (IA)</th>
+                    <th>Recomendação</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-corpo"></tbody>
+        </table>
+    </div>
+
+    <script src="script.js"></script> 
 </body>
 </html>
