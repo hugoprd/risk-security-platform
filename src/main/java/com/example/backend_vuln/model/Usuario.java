@@ -4,9 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "usuario") // Nome da tabela
-public class Usuario {
-
+@Table(name = "usuario")
+public class Usuario{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_usuario;
@@ -24,11 +23,7 @@ public class Usuario {
     private String tipo_usuario; // "ANALISTA_SEGURANCA" ou "GESTOR_SEGURANCA"
 
     private LocalDateTime data_criacao;
-
     private boolean ativo;
-
-
-
 
     public Long getId_usuario() {
         return id_usuario;
@@ -86,14 +81,12 @@ public class Usuario {
         this.ativo = ativo;
     }
 
-    public Usuario() {
+    public Usuario(){
     }
 
-    // Pré-persistência para definir a data de criação
     @PrePersist
     protected void onCreate() {
         data_criacao = LocalDateTime.now();
         ativo = true; // Define como ativo por padrão
     }
-
 }

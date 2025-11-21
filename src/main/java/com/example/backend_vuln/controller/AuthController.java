@@ -1,25 +1,35 @@
 package com.example.backend_vuln.controller;
 
 import com.example.backend_vuln.model.Usuario;
-import com.example.backend_vuln.service.AuthService;
+import com.example.backend_vuln.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.ResponseEntity;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/auth")
-public class AuthController {
+@RequestMapping("/auth")
+@CrossOrigin(origins = "*")
+public class AuthController{
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private AuthService authService;
+    private PasswordEncoder passwordEncoder;
 
-    // Endpoint de Login
     @PostMapping("/login")
-    public Usuario login(@RequestBody Map<String, String> credenciais) {
-        String email = credenciais.get("email");
-        String senha = credenciais.get("senha");
+    public ResponseEntity<?> login(@RequestBody Usuario dadosLogin){
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(dadosLogin.getEmail());
 
-        return authService.autenticar(email, senha);
+        if(usuarioOpt.isPresent()){
+            Usuario usuarioBanco = usuarioOpt.get();
+
+            if (passwordEncoder.matches(dadosLogin.getSenha(), usuarioBanco.getSenha())){
+                return ResponseEntity.ok(usuarioBanco);
+            }
+        }
+
+        return ResponseEntity.status(401).body("Email ou senha inválidos.");
     }
 }
