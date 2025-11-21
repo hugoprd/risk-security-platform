@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/usuarios") // Caminho base para os endpoints
+@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     @Autowired
