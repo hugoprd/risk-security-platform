@@ -117,16 +117,16 @@ public class VulnerabilidadeController {
         return "Vulnerabilidade com id " + id + " foi deletada com sucesso.";
     }
 
-    // --- ADIÇÃO: Endpoint de Integração com IA ---
     @PostMapping("/{id}/recomendacao")
-    public String gerarRecomendacao(@PathVariable Long id) {
-        // Busca a vulnerabilidade
+    public String gerarRecomendacao(@PathVariable Long id){
         Vulnerabilidade vul = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vulnerabilidade não encontrada"));
 
-        // Chama o serviço Wrapper
-        return iaService.gerarRecomendacao(vul);
-    }
-    // ---------------------------------------------
+        String textoRecomendacao = iaService.gerarRecomendacao(vul);
 
+        vul.setRecomendacao(textoRecomendacao);
+        repository.save(vul);
+
+        return textoRecomendacao;
+    }
 }

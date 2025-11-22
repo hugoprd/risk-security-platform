@@ -32,8 +32,9 @@ public class Vulnerabilidade {
     private MetricasCVSS metricasCVSS;
 
     // Relação N:1 com Usuario (Muitas vulnerabilidades para 1 usuário)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_id_usuario") // criar a entidade Usuario.java
+    @ManyToOne
+    @JoinColumn(name = "fk_id_usuario")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Usuario usuario;
 
     public Usuario getUsuario() {
