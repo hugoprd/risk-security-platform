@@ -5,6 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface LogAcessoRepository extends JpaRepository<LogAcesso, Long>{
+public interface LogAcessoRepository extends MongoRepository<LogAcesso, String>{
 
 }
