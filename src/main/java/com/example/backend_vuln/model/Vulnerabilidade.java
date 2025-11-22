@@ -21,6 +21,9 @@ public class Vulnerabilidade {
     private Double pontuacao_cvss;
     private String criticidade;
 
+    @Column(columnDefinition = "TEXT")
+    private String recomendacao;
+
 
     // Relação 1:1 com MetricasCVSS ou nao
     // CascadeType.ALL significa: "Quando eu salvar/apagar uma Vulnerabilidade,
@@ -125,9 +128,6 @@ public class Vulnerabilidade {
             metricasCVSS.setVulnerabilidade(this); // Mantém a ligação dos dois lados
         }
     }
-
-    @Column(columnDefinition = "TEXT")
-    private String recomendacao;
 
     public String getRecomendacao(){
         return recomendacao;
