@@ -76,6 +76,7 @@ spring.datasource.password={PASSWORD}
 7. Rode:
 ```bash
 mvn clean install -DskipTests
+mvn clean package -DskipTests
 java -jar target/backend-vuln-0.0.1-SNAPSHOT.jar
 ```
 
