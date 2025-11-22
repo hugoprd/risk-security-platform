@@ -125,4 +125,15 @@ public class Vulnerabilidade {
             metricasCVSS.setVulnerabilidade(this); // Mantém a ligação dos dois lados
         }
     }
+
+    @Column(columnDefinition = "TEXT")
+    private String recomendacao;
+
+    public String getRecomendacao(){
+        return recomendacao;
+    }
+
+    public void setRecomendacao(String recomendacao){
+        this.recomendacao = recomendacao;
+    }
 }
