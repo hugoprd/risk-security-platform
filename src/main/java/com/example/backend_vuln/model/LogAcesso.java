@@ -1,13 +1,13 @@
 package com.example.backend_vuln.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "log_acesso")
 public class LogAcesso{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private LocalDateTime dataHora;
     private String usuario;
@@ -24,6 +24,14 @@ public class LogAcesso{
         this.dataHora = LocalDateTime.now();
         this.usuario = usuario;
         this.acao = acao;
+    }
+
+    public String getId(){
+        return id;
+    }
+
+    public void setId(String id){
+        this.id = id;
     }
 
     public void setFkIdUsuario(Long fkIdUsuario){
