@@ -1,10 +1,13 @@
 package com.example.backend_vuln.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LlmAgentClient{
     private static final String AGENT_URL = "https://hugoprd-security-llm-agent.hf.space/generate-suggestion";
@@ -13,27 +16,39 @@ public class LlmAgentClient{
             .connectTimeout(Duration.ofSeconds(30)) // serve apenas como um Timeout para uma possível 
             .build();                               // reconexão (30seg)
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    
     public String getSuggestion(String userInput){
-        String safeInput = userInput.replace("\"", "\\\"");
-        String jsonPayload = "{\"description\": \"" + safeInput + "\"}";
-
         try{
+            Map<String, String> payloadMap = new HashMap<>();
+            payloadMap.put("description", userInput);
+
+            String jsonPayload = objectMapper.writeValueAsString(payloadMap);
+
+            System.out.println("--- ENVIANDO PARA IA ---");
+            System.out.println("Payload: " + jsonPayload);
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(AGENT_URL))
-                    .timeout(Duration.ofMinutes(5)) // timeout longo, pois a IA pode demorar (5min)
-                    .header("Content-Type", "application/json") // funciona como 0 "-H" do curl
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload)) // funciona como o "-X POST" e o "-d" do curl
+                    .timeout(Duration.ofMinutes(5))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            return response.body();
+            System.out.println("Status IA: " + response.statusCode());
+            
+            if(response.statusCode() != 200){
+                return "Erro na IA (Status " + response.statusCode() + "): " + response.body();
+            }
 
+            return response.body();
         }
         catch(Exception e){
             e.printStackTrace();
             
-            return "{\"error\": \"Erro ao contatar o agente LLM: " + e.getMessage() + "\"}";
+            return "Erro interno ao chamar IA: " + e.getMessage();
         }
     }
 

@@ -7,18 +7,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class IAService{
     public String gerarRecomendacao(Vulnerabilidade vul){
-        String textoParaIA = "Analise a vulnerabilidade: " + vul.getTitulo() + 
-                             ". Descrição: " + vul.getDescricao() + 
-                             ". CVSS: " + vul.getPontuacao_cvss();
+        String textoParaIA = String.format(
+            "Título: %s. Sistema: %s. Descrição Técnica: %s. CVSS Score: %s.",
+            vul.getTitulo(),
+            vul.getSistema_impactado(),
+            vul.getDescricao(),
+            vul.getPontuacao_cvss()
+        );
 
         try{
-            // Chama o código do Hugo
             LlmAgentClient clienteHugo = new LlmAgentClient();
-
+            
             return clienteHugo.getSuggestion(textoParaIA);
         }
         catch(Exception e){
-            return "Erro na IA: " + e.getMessage();
+            return "Falha no serviço de IA: " + e.getMessage();
         }
     }
 }
