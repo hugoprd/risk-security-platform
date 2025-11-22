@@ -43,6 +43,7 @@ public class LlmAgentClient{
             System.out.println("CORPO DA RESPOSTA: " + response.body());
 
             if(response.statusCode() != 200){
+                // se retornar erro 503 ou 500 é pq o hugging face space crashou
                 return "Erro na IA (Status " + response.statusCode() + "): " + response.body();
             }
 
