@@ -284,6 +284,6 @@ async function pedirAjudaIA(){
     }
     finally{
         btn.disabled = false;
-        btn.innerText = "⚡ Gerar Recomendação com IA";
+        btn.innerText = "Gerar Recomendação com IA";
     }
 }
