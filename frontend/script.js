@@ -2,6 +2,18 @@ const API_BASE = "http://localhost:8080";
 let vulnerabilidadesCache = []; // apenas um cache pra não precisar chamar o backend toda hora
                                 // se ja tiver aqui, n chama o back
 
+function formatarMarkdown(texto){
+    if (!texto) return "";
+
+    let html = texto;
+
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    html = html.replace(/\n/g, '<br>');
+
+    return html;
+}
+
 // ===== MANEJAMENTO DE TELAS =====
 function mostrarTelaCadastroUsuario(){
     document.getElementById('tela-login').style.display = 'none';
