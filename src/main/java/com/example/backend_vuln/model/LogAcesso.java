@@ -1,14 +1,15 @@
 package com.example.backend_vuln.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "log_acesso")
-public class LogAcesso{
+@Document(collection = "log_acesso")
+public class LogAcesso {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
+
     private LocalDateTime dataHora;
     private String usuario;
     private String acao;
@@ -17,40 +18,20 @@ public class LogAcesso{
     private String ipOrigem;
     private boolean sucesso;
     private LocalDateTime dataEvento;
-    
-    public LogAcesso(){}
 
-    public LogAcesso(String usuario, String acao){
+    public LogAcesso() {}
+
+    public LogAcesso(String usuario, String acao) {
         this.dataHora = LocalDateTime.now();
         this.usuario = usuario;
         this.acao = acao;
     }
 
-    public void setFkIdUsuario(Long fkIdUsuario){
-        this.fkIdUsuario = fkIdUsuario;
-    }
-
-    public void setRecurso(String recurso){
-        this.recurso = recurso;
-    }
-
-    public void setIpOrigem(String ipOrigem){
-        this.ipOrigem = ipOrigem;
-    }
-
-    public void setSucesso(boolean sucesso){
-        this.sucesso = sucesso;
-    }
-
-    public void setDataEvento(LocalDateTime dataEvento){
-        this.dataEvento = dataEvento;
-    }
-    
-    public Long getId(){
+    public String getId(){
         return id;
     }
 
-    public void setId(Long id){
+    public void setId(String id){
         this.id = id;
     }
 
@@ -76,5 +57,45 @@ public class LogAcesso{
 
     public void setAcao(String acao){
         this.acao = acao;
+    }
+
+    public Long getFkIdUsuario(){
+        return fkIdUsuario;
+    }
+
+    public void setFkIdUsuario(Long fkIdUsuario){
+        this.fkIdUsuario = fkIdUsuario;
+    }
+
+    public String getRecurso(){
+        return recurso;
+    }
+
+    public void setRecurso(String recurso){
+        this.recurso = recurso;
+    }
+
+    public String getIpOrigem(){
+        return ipOrigem;
+    }
+
+    public void setIpOrigem(String ipOrigem){
+        this.ipOrigem = ipOrigem;
+    }
+
+    public boolean isSucesso(){
+        return sucesso;
+    }
+
+    public void setSucesso(boolean sucesso){
+        this.sucesso = sucesso;
+    }
+
+    public LocalDateTime getDataEvento(){
+        return dataEvento;
+    }
+
+    public void setDataEvento(LocalDateTime dataEvento){
+        this.dataEvento = dataEvento;
     }
 }
