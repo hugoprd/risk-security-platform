@@ -1,6 +1,6 @@
 package com.example.backend_vuln.model;
-
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "metricas_cvss")
@@ -15,6 +15,7 @@ public class MetricasCVSS {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fk_id_vulnerabilidade", nullable = false)
+    @JsonIgnore
     private Vulnerabilidade vulnerabilidade;
 
 

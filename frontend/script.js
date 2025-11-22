@@ -1,185 +1,222 @@
-const API_BASE = "http://localhost:8080"; 
+const API_BASE = "http://localhost:8080";
+let vulnerabilidadesCache = []; // apenas um cache pra não precisar chamar o backend toda hora
+                                // se ja tiver aqui, n chama o back
 
-function irParaCadastro(){
-    document.getElementById('tela-login').classList.add('oculto');
-    document.getElementById('tela-cadastro').classList.remove('oculto');
+// ===== MANEJAMENTO DE TELAS =====
+function mostrarTelaCadastroUsuario(){
+    document.getElementById('tela-login').style.display = 'none';
+    document.getElementById('tela-cadastro-usuario').style.display = 'block';
 }
 
-function voltarParaLogin(){
-    document.getElementById('tela-cadastro').classList.add('oculto');
-    document.getElementById('tela-login').classList.remove('oculto');
+function voltarLogin(){
+    document.getElementById('tela-cadastro-usuario').style.display = 'none';
+    document.getElementById('tela-login').style.display = 'block';
 }
 
-function logout(){
+function navegar(viewId){
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById('view-' + viewId).classList.add('ativa');
+    
+    if(viewId === 'historico') carregarHistorico();
+    if(viewId === 'ia-chat') carregarDropdownIA();
+}
+
+function logout() {
     location.reload();
 }
 
-// ===== LOGIN DE USUÁRIO =====
+// ===== LOGIN DE USUARIO =====
 document.getElementById('formLogin').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const senha = document.getElementById('loginSenha').value;
-    const feedback = document.getElementById('feedbackLogin');
-
-    feedback.textContent = "Entrando...";
-
+    
     try{
-        const response = await fetch(`${API_BASE}/auth/login`, {
+        const res = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, senha })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, senha})
         });
-
-        if(response.ok){
-            const usuario = await response.json();
+        
+        if(res.ok){
+            const user = await res.json();
+            document.getElementById('idUsuarioLogado').value = user.id_usuario;
+            document.getElementById('user-display').innerText = user.nome;
             
-            document.getElementById('idUsuarioLogado').value = usuario.id_usuario;
-            document.getElementById('msgBemVindo').textContent = `Olá, ${usuario.nome}`;
-
-            document.getElementById('tela-login').classList.add('oculto');
-            document.getElementById('painel-principal').classList.remove('oculto');
-            
-            listarVulnerabilidades();
+            document.getElementById('tela-login').style.display = 'none';
+            document.getElementById('app-principal').style.display = 'flex';
         }
         else{
-            feedback.textContent = "Email ou senha incorretos.";
+            document.getElementById('feedbackLogin').innerText = "Credenciais inválidas";
         }
     }
-    catch(error){
-        console.error(error);
-        feedback.textContent = "Erro de conexão.";
+    catch(err){
+        console.error(err);
+        alert("Erro ao conectar");
     }
 });
 
 // ===== CADASTRO DE USUARIO =====
 document.getElementById('formUsuario').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const feedback = document.getElementById('feedbackUsuario');
-    
     const usuario = {
         nome: document.getElementById('nome').value,
         email: document.getElementById('email').value,
         senha: document.getElementById('senha').value,
         tipo_usuario: document.getElementById('tipo_usuario').value
     };
-
-    try{
-        const response = await fetch(`${API_BASE}/usuarios`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(usuario)
-        });
-
-        if(response.ok){
-            alert("Conta criada com sucesso! Faça login agora.");
-            document.getElementById('formUsuario').reset();
-            
-            voltarParaLogin();
-        }
-        else{
-            feedback.textContent = "Erro ao cadastrar.";
-        }
+    
+    const res = await fetch(`${API_BASE}/usuarios`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(usuario)
+    });
+    
+    if(res.ok){
+        alert("Cadastrado! Faça login.");
+        voltarLogin();
     }
-    catch(error){
-        console.error(error);
-        feedback.textContent = "Erro no servidor.";
+    else{
+        alert("Erro ao cadastrar.");
     }
 });
 
 // ===== CADASTRO DE VULNERABILIDADE =====
 document.getElementById('formVulnerabilidade').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const feedback = document.getElementById('feedbackVulnerabilidade');
-    feedback.textContent = "Enviando...";
-
-    const idUsuario = document.getElementById('idUsuarioLogado').value;
-
-    if(!idUsuario){
-        alert("Erro: Usuário não identificado. Faça login novamente.");
-        
-        return;
-    }
-
-    const vulnerabilidade = {
+    const idUser = document.getElementById('idUsuarioLogado').value;
+    
+    const vuln = {
         titulo: document.getElementById('titulo').value,
         descricao: document.getElementById('descricao').value,
         sistema_impactado: document.getElementById('sistema_impactado').value,
         status: document.getElementById('status').value,
-        metricasCVSS: {
-            vectorString: document.getElementById('vectorString').value
-        }
+        metricasCVSS: { vectorString: document.getElementById('vectorString').value }
     };
-
-    try{
-        const response = await fetch(`${API_BASE}/api/vulnerabilidades/usuario/${idUsuario}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(vulnerabilidade)
-        });
-
-        if(response.ok){
-            feedback.textContent = "Vulnerabilidade registrada!";
-            document.getElementById('formVulnerabilidade').reset();
-            listarVulnerabilidades();
-        }
-        else{
-            feedback.textContent = "Erro ao registrar.";
-        }
+    
+    const res = await fetch(`${API_BASE}/api/vulnerabilidades/usuario/${idUser}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(vuln)
+    });
+    
+    if(res.ok){
+        alert("Vulnerabilidade Salva!");
+        document.getElementById('formVulnerabilidade').reset();
+        navegar('historico');
     }
-    catch(error){
-        console.error(error);
-        feedback.textContent = "Erro de conexão.";
+    else{
+        alert("Erro ao salvar.");
     }
 });
 
-// ===== LISTAGEM DE VULNERABILIDADES =====
-async function listarVulnerabilidades(){
-    const tbody = document.getElementById('tabela-corpo');
-    tbody.innerHTML = "<tr><td colspan='6'>Carregando...</td></tr>";
-
+// ===== HISTORICO DAS VULNERABILIDADES =====
+async function carregarHistorico(){
+    const tbody = document.getElementById('tbody-historico');
+    tbody.innerHTML = "<tr><td colspan='5'>Carregando...</td></tr>";
+    
     try{
-        const response = await fetch(`${API_BASE}/api/vulnerabilidades`);
-        const lista = await response.json();
+        const res = await fetch(`${API_BASE}/api/vulnerabilidades`);
+        const lista = await res.json();
+        vulnerabilidadesCache = lista;
+        
         tbody.innerHTML = "";
-
-        if(lista.length === 0){
-            tbody.innerHTML = "<tr><td colspan='6'>Nenhuma vulnerabilidade encontrada.</td></tr>";
+        if(lista.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='5'>Nada encontrado.</td></tr>";
             return;
         }
-
+        
         lista.forEach(v => {
-            const row = tbody.insertRow();
-            row.insertCell().innerText = v.id_vulnerabilidade;
-            row.insertCell().innerText = v.titulo;
-            row.insertCell().innerText = v.pontuacao_cvss || "-";
-            row.insertCell().innerText = v.status;
+            const rec = v.recomendacao ? "Já analisado" : "Pendente";
             
-            const cellIA = row.insertCell();
-            const btn = document.createElement("button");
-            btn.innerText = "Consultar IA";
-            btn.onclick = () => chamarIA(v.id_vulnerabilidade, row);
-            cellIA.appendChild(btn);
-
-            row.insertCell().className = "resp-ia";
+            const tr = `
+                <tr>
+                    <td>${v.id_vulnerabilidade}</td>
+                    <td>${v.titulo}</td>
+                    <td>${v.criticidade || '-'}</td>
+                    <td>${v.status}</td>
+                    <td>${rec}</td>
+                </tr>
+            `;
+            tbody.innerHTML += tr;
         });
     }
-    catch(error){
-        console.error(error);
-        tbody.innerHTML = "<tr><td colspan='6'>Erro ao carregar lista.</td></tr>";
+    catch(err){
+        tbody.innerHTML = "<tr><td colspan='5'>Erro ao carregar lista (Verifique o @JsonIgnore no Java).</td></tr>";
+        console.error(err);
     }
 }
 
-// ===== CHAMADA IA =====
-async function chamarIA(id, row){
-    const cell = row.cells[5];
-    cell.innerText = "Consultando...";
+// ===== RECOMENDACAO DA IA =====
+function carregarDropdownIA(){
+    const select = document.getElementById('select-vuln-ia');
+    select.innerHTML = '<option value="">-- Selecione --</option>';
+    
+    if(vulnerabilidadesCache.length === 0) carregarHistorico(); 
+    
+    vulnerabilidadesCache.forEach(v => {
+        const option = document.createElement('option');
+        option.value = v.id_vulnerabilidade;
+        option.text = `ID ${v.id_vulnerabilidade}: ${v.titulo}`;
+        select.appendChild(option);
+    });
+}
+
+function mostrarDetalhesVuln(){
+    const id = document.getElementById('select-vuln-ia').value;
+    const detalhesDiv = document.getElementById('detalhes-vuln');
+    const containerResp = document.getElementById('resposta-ia-container');
+    
+    if(!id){
+        detalhesDiv.style.display = 'none';
+        
+        return;
+    }
+    
+    const vuln = vulnerabilidadesCache.find(v => v.id_vulnerabilidade == id);
+    if(vuln){
+        detalhesDiv.style.display = 'block';
+        document.getElementById('desc-vuln-texto').innerText = vuln.descricao;
+        
+        if(vuln.recomendacao){
+            containerResp.innerHTML = `<div class="chat-msg">${vuln.recomendacao}</div>`;
+        }
+        else{
+            containerResp.innerHTML = "<em>Nenhuma recomendação gerada ainda.</em>";
+        }
+    }
+}
+
+async function pedirAjudaIA(){
+    const id = document.getElementById('select-vuln-ia').value;
+    const btn = document.getElementById('btn-ask-ia');
+    const containerResp = document.getElementById('resposta-ia-container');
+    
+    if(!id) return alert("Selecione uma vulnerabilidade!");
+    
+    btn.disabled = true;
+    btn.innerText = "IA Pensando...";
+    containerResp.innerHTML = "<em>Gerando análise... aguarde...</em>";
     
     try{
-        const response = await fetch(`${API_BASE}/api/vulnerabilidades/${id}/recomendacao`, { method: 'POST' });
-        const text = await response.text();
-        cell.innerText = text;
+        const res = await fetch(`${API_BASE}/api/vulnerabilidades/${id}/recomendacao`, {
+            method: 'POST'
+        });
+        
+        const texto = await res.text();
+        
+        containerResp.innerHTML = `<div class="chat-msg"><strong>Sugestão:</strong><br>${texto}</div>`;
+        
+        const vuln = vulnerabilidadesCache.find(v => v.id_vulnerabilidade == id);
+        if(vuln) vuln.recomendacao = texto;
     }
-    catch(error){
-        cell.innerText = "Erro na IA.";
+    catch(err){
+        containerResp.innerHTML = "<span style='color:red'>Erro ao falar com a IA.</span>";
+    }
+    finally{
+        btn.disabled = false;
+        btn.innerText = "Gerar Recomendação com IA";
     }
 }
