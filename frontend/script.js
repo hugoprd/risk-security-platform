@@ -115,7 +115,7 @@ document.getElementById('formVulnerabilidade').addEventListener('submit', async 
 // ===== HISTORICO DAS VULNERABILIDADES =====
 async function carregarHistorico(){
     const tbody = document.getElementById('tbody-historico');
-    tbody.innerHTML = "<tr><td colspan='5'>Carregando...</td></tr>";
+    tbody.innerHTML = "<tr><td colspan='6'>Carregando...</td></tr>";
     
     try{
         const res = await fetch(`${API_BASE}/api/vulnerabilidades`);
@@ -129,22 +129,29 @@ async function carregarHistorico(){
         }
         
         lista.forEach(v => {
-            const rec = v.recomendacao ? "Já analisado" : "Pendente";
+            const statusRecIcon = v.recomendacao 
+                ? "<span style='color:green; font-weight:bold;'>Analisado</span>" 
+                : "<span style='color:orange;'>Pendente</span>";
+
+            const textoRec = v.recomendacao 
+                ? `<div style="max-height: 100px; overflow-y: auto; font-size: 0.9em;">${v.recomendacao}</div>` 
+                : "-";
             
             const tr = `
                 <tr>
                     <td>${v.id_vulnerabilidade}</td>
-                    <td>${v.titulo}</td>
+                    <td><strong>${v.titulo}</strong></td>
                     <td>${v.criticidade || '-'}</td>
                     <td>${v.status}</td>
-                    <td>${rec}</td>
+                    <td>${statusRecIcon}</td>
+                    <td style="max-width: 350px;">${textoRec}</td>
                 </tr>
             `;
             tbody.innerHTML += tr;
         });
     }
     catch(err){
-        tbody.innerHTML = "<tr><td colspan='5'>Erro ao carregar lista (Verifique o @JsonIgnore no Java).</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='6'>Erro ao carregar lista (Verifique o @JsonIgnore no Java).</td></tr>";
         console.error(err);
     }
 }
