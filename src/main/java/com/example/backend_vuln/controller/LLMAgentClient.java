@@ -39,6 +39,9 @@ public class LlmAgentClient{
 
             System.out.println("Status IA: " + response.statusCode());
             
+            System.out.println("Status IA: " + response.statusCode());
+            System.out.println("CORPO DA RESPOSTA: " + response.body());
+
             if(response.statusCode() != 200){
                 return "Erro na IA (Status " + response.statusCode() + "): " + response.body();
             }
