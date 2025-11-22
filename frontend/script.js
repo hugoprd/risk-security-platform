@@ -14,6 +14,29 @@ function formatarMarkdown(texto){
     return html;
 }
 
+function processarTextoIA(textoBruto){
+    if(!textoBruto) return null;
+
+    let textoFinal = textoBruto;
+
+    try{
+        const obj = JSON.parse(textoBruto);
+
+        if(obj.suggestion){
+            textoFinal = obj.suggestion;
+        }
+        else if(obj.error){
+            textoFinal = "Erro da IA: " + obj.error;
+        }
+    }
+    catch(e){
+        // se der erro no JSON.parse é porque é texto normal (ex: mensagem de timeout)
+        // então mantém o textoFinal como estava
+    }
+
+    return formatarMarkdown(textoFinal);
+}
+
 // ===== MANEJAMENTO DE TELAS =====
 function mostrarTelaCadastroUsuario(){
     document.getElementById('tela-login').style.display = 'none';
@@ -132,11 +155,12 @@ async function carregarHistorico(){
     try{
         const res = await fetch(`${API_BASE}/api/vulnerabilidades`);
         const lista = await res.json();
-        vulnerabilidadesCache = lista;
+        vulnerabilidadesCache = lista; 
         
         tbody.innerHTML = "";
-        if(lista.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='5'>Nada encontrado.</td></tr>";
+        if(lista.length === 0){
+            tbody.innerHTML = "<tr><td colspan='6'>Nada encontrado.</td></tr>";
+            
             return;
         }
         
@@ -144,9 +168,11 @@ async function carregarHistorico(){
             const statusRecIcon = v.recomendacao 
                 ? "<span style='color:green; font-weight:bold;'>Analisado</span>" 
                 : "<span style='color:orange;'>Pendente</span>";
+            
+            const recomendacaoHTML = processarTextoIA(v.recomendacao);
 
-            const textoRec = v.recomendacao 
-                ? `<div style="max-height: 100px; overflow-y: auto; font-size: 0.9em;">${v.recomendacao}</div>` 
+            const textoRec = recomendacaoHTML 
+                ? `<div style="max-height: 100px; overflow-y: auto; font-size: 0.9em;">${recomendacaoHTML}</div>` 
                 : "-";
             
             const tr = `
@@ -163,7 +189,7 @@ async function carregarHistorico(){
         });
     }
     catch(err){
-        tbody.innerHTML = "<tr><td colspan='6'>Erro ao carregar lista (Verifique o @JsonIgnore no Java).</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='6' style='color:red'>Erro ao carregar histórico.</td></tr>";
         console.error(err);
     }
 }
@@ -216,26 +242,48 @@ async function pedirAjudaIA(){
     if(!id) return alert("Selecione uma vulnerabilidade!");
     
     btn.disabled = true;
-    btn.innerText = "IA Pensando...";
-    containerResp.innerHTML = "<em>Gerando análise... aguarde...</em>";
+    btn.innerHTML = "<strong>Processando...</strong>";
+    containerResp.innerHTML = "<em>Aguarde, a IA está analisando...</em>";
     
     try{
         const res = await fetch(`${API_BASE}/api/vulnerabilidades/${id}/recomendacao`, {
             method: 'POST'
         });
         
-        const texto = await res.text();
+        const respostaBruta = await res.text();
         
-        containerResp.innerHTML = `<div class="chat-msg"><strong>Sugestão:</strong><br>${texto}</div>`;
+        let textoParaExibir = "";
+
+        try{
+            const objetoJson = JSON.parse(respostaBruta);
+            
+            if(objetoJson.suggestion){
+                textoParaExibir = objetoJson.suggestion;
+            }
+            else if(objetoJson.error){
+                textoParaExibir = "Erro da IA: " + objetoJson.error;
+            }
+            else{
+                textoParaExibir = respostaBruta;
+            }
+        }
+        catch(e){
+            textoParaExibir = respostaBruta;
+        }        
+
+        const htmlFinal = processarTextoIA(respostaBruta);
+
+        containerResp.innerHTML = `<div class="chat-msg">${htmlFinal}</div>`;
         
         const vuln = vulnerabilidadesCache.find(v => v.id_vulnerabilidade == id);
-        if(vuln) vuln.recomendacao = texto;
+        if(vuln) vuln.recomendacao = respostaBruta;
     }
     catch(err){
-        containerResp.innerHTML = "<span style='color:red'>Erro ao falar com a IA.</span>";
+        console.error(err);
+        containerResp.innerHTML = "<span style='color:red'>Erro de conexão.</span>";
     }
     finally{
         btn.disabled = false;
-        btn.innerText = "Gerar Recomendação com IA";
+        btn.innerText = "⚡ Gerar Recomendação com IA";
     }
 }
