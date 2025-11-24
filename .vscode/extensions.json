@@ -3,7 +3,10 @@
         // Git
         "eamodio.gitlens",
 
-        //Frontend
-        "ritwickdey.liveserver"
+        // Frontend
+        "ritwickdey.liveserver",
+
+        // Leitor PDF
+        "tomoki1207.pdf"
     ]
 }

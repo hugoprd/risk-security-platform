@@ -23,6 +23,22 @@ As partes do programa que serão armazenadas em MongoDB são:
 - Log de Acesso: data de criação do evento, o tipo de ação, o ip de origem, o recurso e se foi sucesso ou nao
 - Histórico das vulnerabilidades/recomendação da IA: a atividade que foi analisada, se foi respondida ou não e a resposta que foi dada pelo agente
 
+# Testes
+
+Em certas etapas do trabalho, foi necessário fazer uma mediação do teste de carga duas vezes em algumas funcionalidades ou serviços internos do programa, para validar as métricas do sistema, sendo elas: a latência, a vazão e a concorrência.
+
+## Primeira Mediação dos Testes de Carga
+
+A primeira mediação foi para obtermos um panorama geral do programa ao escolher 2 funcionalidades. Sendo possível visualizar em um relatório específico para ela [aqui](./docs/tests/MEDIACAO_DO_SLA_01.pdf).
+
+Funcionalidades escolhidas:
+- Autenticação e Registro de Vulnerabilidades
+- Listagem de Vulnerabilidades
+
+## Segunda Mediação dos Testes de Carga
+
+TODO: CONTINUAR ESCREVENDO E ANEXAR O DOC
+
 ## Passo a passo
 
 ### 0. (EXTRA) Se você estiver utilizando Windows
