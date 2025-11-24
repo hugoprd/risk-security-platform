@@ -1,59 +1,289 @@
-const API_URL = "http://localhost:8080/api/vulnerabilidades";
+const API_BASE = "http://localhost:8080";
+let vulnerabilidadesCache = []; // apenas um cache pra não precisar chamar o backend toda hora
+                                // se ja tiver aqui, n chama o back
 
-async function listarVulnerabilidades() {
-    const tabela = document.getElementById("tabela-corpo");
-    tabela.innerHTML = "<tr><td colspan='6'>Carregando...</td></tr>";
+function formatarMarkdown(texto){
+    if (!texto) return "";
+
+    let html = texto;
+
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    html = html.replace(/\n/g, '<br>');
+
+    return html;
+}
+
+function processarTextoIA(textoBruto){
+    if(!textoBruto) return null;
+
+    let textoFinal = textoBruto;
 
     try{
-        const resposta = await fetch(API_URL);
-        const lista = await resposta.json();
+        const obj = JSON.parse(textoBruto);
 
-        tabela.innerHTML = "";
+        if(obj.suggestion){
+            textoFinal = obj.suggestion;
+        }
+        else if(obj.error){
+            textoFinal = "Erro da IA: " + obj.error;
+        }
+    }
+    catch(e){
+        // se der erro no JSON.parse é porque é texto normal (ex: mensagem de timeout)
+        // então mantém o textoFinal como estava
+    }
 
-        lista.forEach(vuln => {
-            const linha = tabela.insertRow();
+    return formatarMarkdown(textoFinal);
+}
 
-            linha.insertCell().innerText = vuln.id_vulnerabilidade;
-            linha.insertCell().innerText = vuln.titulo;
-            linha.insertCell().innerText = vuln.pontuacao_cvss;
-            linha.insertCell().innerText = vuln.status || "Aberto";
+// ===== MANEJAMENTO DE TELAS =====
+function mostrarTelaCadastroUsuario(){
+    document.getElementById('tela-login').style.display = 'none';
+    document.getElementById('tela-cadastro-usuario').style.display = 'block';
+}
 
-            const celulaBotao = linha.insertCell();
-            const botao = document.createElement("button");
-            botao.innerText = "Consultar IA";
-            botao.className = "btn-ia";
-            botao.onclick = () => chamarAgenteIA(vuln.id_vulnerabilidade, linha);
-            celulaBotao.appendChild(botao);
+function voltarLogin(){
+    document.getElementById('tela-cadastro-usuario').style.display = 'none';
+    document.getElementById('tela-login').style.display = 'block';
+}
 
-            linha.insertCell().className = "resposta-ia"; 
+function navegar(viewId){
+    document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById('view-' + viewId).classList.add('ativa');
+    
+    if(viewId === 'historico') carregarHistorico();
+    if(viewId === 'ia-chat') carregarDropdownIA();
+}
+
+function logout() {
+    location.reload();
+}
+
+// ===== LOGIN DE USUARIO =====
+document.getElementById('formLogin').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const senha = document.getElementById('loginSenha').value;
+    
+    try{
+        const res = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, senha})
+        });
+        
+        if(res.ok){
+            const user = await res.json();
+            document.getElementById('idUsuarioLogado').value = user.id_usuario;
+            document.getElementById('user-display').innerText = user.nome;
+            
+            document.getElementById('tela-login').style.display = 'none';
+            document.getElementById('app-principal').style.display = 'flex';
+        }
+        else{
+            document.getElementById('feedbackLogin').innerText = "Credenciais inválidas";
+        }
+    }
+    catch(err){
+        console.error(err);
+        alert("Erro ao conectar");
+    }
+});
+
+// ===== CADASTRO DE USUARIO =====
+document.getElementById('formUsuario').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const usuario = {
+        nome: document.getElementById('nome').value,
+        email: document.getElementById('email').value,
+        senha: document.getElementById('senha').value,
+        tipo_usuario: document.getElementById('tipo_usuario').value
+    };
+    
+    const res = await fetch(`${API_BASE}/usuarios`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(usuario)
+    });
+    
+    if(res.ok){
+        alert("Cadastrado! Faça login.");
+        voltarLogin();
+    }
+    else{
+        alert("Erro ao cadastrar.");
+    }
+});
+
+// ===== CADASTRO DE VULNERABILIDADE =====
+document.getElementById('formVulnerabilidade').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const idUser = document.getElementById('idUsuarioLogado').value;
+    
+    const vuln = {
+        titulo: document.getElementById('titulo').value,
+        descricao: document.getElementById('descricao').value,
+        sistema_impactado: document.getElementById('sistema_impactado').value,
+        status: document.getElementById('status').value,
+        metricasCVSS: { vectorString: document.getElementById('vectorString').value }
+    };
+    
+    const res = await fetch(`${API_BASE}/api/vulnerabilidades/usuario/${idUser}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(vuln)
+    });
+    
+    if(res.ok){
+        alert("Vulnerabilidade Salva!");
+        document.getElementById('formVulnerabilidade').reset();
+        navegar('historico');
+    }
+    else{
+        alert("Erro ao salvar.");
+    }
+});
+
+// ===== HISTORICO DAS VULNERABILIDADES =====
+async function carregarHistorico(){
+    const tbody = document.getElementById('tbody-historico');
+    tbody.innerHTML = "<tr><td colspan='6'>Carregando...</td></tr>";
+    
+    try{
+        const res = await fetch(`${API_BASE}/api/vulnerabilidades`);
+        const lista = await res.json();
+        vulnerabilidadesCache = lista; 
+        
+        tbody.innerHTML = "";
+        if(lista.length === 0){
+            tbody.innerHTML = "<tr><td colspan='6'>Nada encontrado.</td></tr>";
+            
+            return;
+        }
+        
+        lista.forEach(v => {
+            const statusRecIcon = v.recomendacao 
+                ? "<span style='color:green; font-weight:bold;'>Analisado</span>" 
+                : "<span style='color:orange;'>Pendente</span>";
+            
+            const recomendacaoHTML = processarTextoIA(v.recomendacao);
+
+            const textoRec = recomendacaoHTML 
+                ? `<div style="max-height: 100px; overflow-y: auto; font-size: 0.9em;">${recomendacaoHTML}</div>` 
+                : "-";
+            
+            const tr = `
+                <tr>
+                    <td>${v.id_vulnerabilidade}</td>
+                    <td><strong>${v.titulo}</strong></td>
+                    <td>${v.criticidade || '-'}</td>
+                    <td>${v.status}</td>
+                    <td>${statusRecIcon}</td>
+                    <td style="max-width: 350px;">${textoRec}</td>
+                </tr>
+            `;
+            tbody.innerHTML += tr;
         });
     }
-    catch(erro){
-        console.error(erro);
-        tabela.innerHTML = "<tr><td colspan='6' style='color:red'>Erro ao conectar com o Backend Java.</td></tr>";
+    catch(err){
+        tbody.innerHTML = "<tr><td colspan='6' style='color:red'>Erro ao carregar histórico.</td></tr>";
+        console.error(err);
     }
 }
 
-async function chamarAgenteIA(id, linhaHTML){
-    const celulaResposta = linhaHTML.cells[5];
-    celulaResposta.innerHTML = "<span class='loading'>Consultando Agente LLM...</span>";
+// ===== RECOMENDACAO DA IA =====
+function carregarDropdownIA(){
+    const select = document.getElementById('select-vuln-ia');
+    select.innerHTML = '<option value="">-- Selecione --</option>';
+    
+    if(vulnerabilidadesCache.length === 0) carregarHistorico(); 
+    
+    vulnerabilidadesCache.forEach(v => {
+        const option = document.createElement('option');
+        option.value = v.id_vulnerabilidade;
+        option.text = `ID ${v.id_vulnerabilidade}: ${v.titulo}`;
+        select.appendChild(option);
+    });
+}
 
-    try{
-        const resposta = await fetch(`${API_URL}/${id}/recomendacao`, {
-            method: "POST"
-        });
-
-        if(resposta.ok){
-            const textoRecomendacao = await resposta.text(); 
-            
-            celulaResposta.innerText = textoRecomendacao;
+function mostrarDetalhesVuln(){
+    const id = document.getElementById('select-vuln-ia').value;
+    const detalhesDiv = document.getElementById('detalhes-vuln');
+    const containerResp = document.getElementById('resposta-ia-container');
+    
+    if(!id){
+        detalhesDiv.style.display = 'none';
+        
+        return;
+    }
+    
+    const vuln = vulnerabilidadesCache.find(v => v.id_vulnerabilidade == id);
+    if(vuln){
+        detalhesDiv.style.display = 'block';
+        document.getElementById('desc-vuln-texto').innerText = vuln.descricao;
+        
+        if(vuln.recomendacao){
+            containerResp.innerHTML = `<div class="chat-msg">${vuln.recomendacao}</div>`;
         }
         else{
-            celulaResposta.innerText = "Erro ao processar IA.";
+            containerResp.innerHTML = "<em>Nenhuma recomendação gerada ainda.</em>";
         }
     }
-    catch(erro){
-        console.error(erro);
-        celulaResposta.innerText = "Erro de conexão.";
+}
+
+async function pedirAjudaIA(){
+    const id = document.getElementById('select-vuln-ia').value;
+    const btn = document.getElementById('btn-ask-ia');
+    const containerResp = document.getElementById('resposta-ia-container');
+    
+    if(!id) return alert("Selecione uma vulnerabilidade!");
+    
+    btn.disabled = true;
+    btn.innerHTML = "<strong>Processando...</strong>";
+    containerResp.innerHTML = "<em>Aguarde, a IA está analisando...</em>";
+    
+    try{
+        const res = await fetch(`${API_BASE}/api/vulnerabilidades/${id}/recomendacao`, {
+            method: 'POST'
+        });
+        
+        const respostaBruta = await res.text();
+        
+        let textoParaExibir = "";
+
+        try{
+            const objetoJson = JSON.parse(respostaBruta);
+            
+            if(objetoJson.suggestion){
+                textoParaExibir = objetoJson.suggestion;
+            }
+            else if(objetoJson.error){
+                textoParaExibir = "Erro da IA: " + objetoJson.error;
+            }
+            else{
+                textoParaExibir = respostaBruta;
+            }
+        }
+        catch(e){
+            textoParaExibir = respostaBruta;
+        }        
+
+        const htmlFinal = processarTextoIA(respostaBruta);
+
+        containerResp.innerHTML = `<div class="chat-msg">${htmlFinal}</div>`;
+        
+        const vuln = vulnerabilidadesCache.find(v => v.id_vulnerabilidade == id);
+        if(vuln) vuln.recomendacao = respostaBruta;
+    }
+    catch(err){
+        console.error(err);
+        containerResp.innerHTML = "<span style='color:red'>Erro de conexão.</span>";
+    }
+    finally{
+        btn.disabled = false;
+        btn.innerText = "Gerar Recomendação com IA";
     }
 }

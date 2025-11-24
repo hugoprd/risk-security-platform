@@ -21,6 +21,9 @@ public class Vulnerabilidade {
     private Double pontuacao_cvss;
     private String criticidade;
 
+    @Column(columnDefinition = "TEXT")
+    private String recomendacao;
+
 
     // Relação 1:1 com MetricasCVSS ou nao
     // CascadeType.ALL significa: "Quando eu salvar/apagar uma Vulnerabilidade,
@@ -29,8 +32,9 @@ public class Vulnerabilidade {
     private MetricasCVSS metricasCVSS;
 
     // Relação N:1 com Usuario (Muitas vulnerabilidades para 1 usuário)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_id_usuario") // criar a entidade Usuario.java
+    @ManyToOne
+    @JoinColumn(name = "fk_id_usuario")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Usuario usuario;
 
     public Usuario getUsuario() {
@@ -124,5 +128,13 @@ public class Vulnerabilidade {
         if (metricasCVSS != null) {
             metricasCVSS.setVulnerabilidade(this); // Mantém a ligação dos dois lados
         }
+    }
+
+    public String getRecomendacao(){
+        return recomendacao;
+    }
+
+    public void setRecomendacao(String recomendacao){
+        this.recomendacao = recomendacao;
     }
 }

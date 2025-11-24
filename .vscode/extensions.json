@@ -1,6 +1,9 @@
 {
     "recommendations": [
         // Git
-        "eamodio.gitlens"
+        "eamodio.gitlens",
+
+        //Frontend
+        "ritwickdey.liveserver"
     ]
 }

@@ -1,6 +1,7 @@
 package com.example.backend_vuln.controller;
 
 import com.example.backend_vuln.model.Usuario;
+import com.example.backend_vuln.service.UsuarioService;
 import com.example.backend_vuln.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -9,13 +10,15 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/usuarios") // Caminho base para os endpoints
-public class UsuarioController {
+@RequestMapping("/usuarios")
+@CrossOrigin(origins = "*")
+public class UsuarioController{
+    @Autowired
+    private UsuarioService usuarioService;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // 1. Listar todos os usuários
     @GetMapping
     public List<Usuario> listarUsuarios() {
         return usuarioRepository.findAll();
@@ -30,7 +33,8 @@ public class UsuarioController {
     // 3. Criar novo usuário
     @PostMapping
     public Usuario criarUsuario(@RequestBody Usuario usuario) {
-        return usuarioRepository.save(usuario);
+        // return usuarioRepository.save(usuario);
+        return usuarioService.criarUsuario(usuario);
     }
 
     // 4. Atualizar usuário existente

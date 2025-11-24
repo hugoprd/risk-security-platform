@@ -2,33 +2,150 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Plataforma de Vulnerabilidade</title>
+    <title>Security Platform & AI</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        button { cursor: pointer; padding: 5px 10px; }
-        .btn-ia { background-color: #4CAF50; color: white; border: none; }
-        .loading { color: orange; font-style: italic; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f4f4f9; }
+        
+        .layout { display: flex; height: 100vh; }
+        .sidebar { width: 250px; background-color: #2c3e50; color: white; display: flex; flex-direction: column; }
+        .sidebar h2 { text-align: center; padding: 20px 0; margin: 0; background-color: #1a252f; }
+        .menu-btn { padding: 15px 20px; color: white; background: none; border: none; text-align: left; cursor: pointer; font-size: 16px; border-bottom: 1px solid #34495e; }
+        .menu-btn:hover { background-color: #34495e; }
+        .menu-btn.active { background-color: #3498db; }
+        
+        .content { flex: 1; padding: 30px; overflow-y: auto; }
+        .tela { display: none; }
+        .tela.ativa { display: block; animation: fadeIn 0.5s; }
+
+        input, select, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; display: block; }
+        button.action-btn { background-color: #27ae60; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background-color: #f8f9fa; }
+
+        .chat-box { background: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; min-height: 200px; margin-top: 20px; }
+        .chat-msg { background-color: #e1f5fe; padding: 15px; border-radius: 8px; margin-top: 10px; border-left: 5px solid #03a9f4; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
-    <h1>Painel de Vulnerabilidades</h1>
-    <button onclick="listarVulnerabilidades()">Carregar Lista</button>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Título</th>
-                <th>CVSS</th>
-                <th>Status</th>
-                <th>Ação (IA)</th> <th>Recomendação da IA</th> </tr>
-        </thead>
-        <tbody id="tabela-corpo">
-            </tbody>
-    </table>
+    <div id="tela-login" style="max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h2 style="text-align: center;">Acesso ao Sistema</h2>
+        <form id="formLogin">
+            <input type="email" id="loginEmail" placeholder="E-mail" required>
+            <input type="password" id="loginSenha" placeholder="Senha" required>
+            <button type="submit" class="action-btn" style="width: 100%;">Entrar</button>
+        </form>
+        <p id="feedbackLogin" style="color: red; text-align: center; margin-top: 10px;"></p>
+        <p style="text-align: center; margin-top: 20px;">
+            <a href="#" onclick="mostrarTelaCadastroUsuario()">Criar nova conta</a>
+        </p>
+    </div>
+
+    <div id="tela-cadastro-usuario" style="display: none; max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 8px;">
+        <h2>👤 Novo Usuário</h2>
+        <form id="formUsuario">
+            <input type="text" id="nome" placeholder="Nome Completo" required>
+            <input type="email" id="email" placeholder="E-mail" required>
+            <input type="password" id="senha" placeholder="Senha" required>
+            <select id="tipo_usuario">
+                <option value="ANALISTA_SEGURANCA">Analista de Segurança</option>
+                <option value="GESTOR_SEGURANCA">Gestor</option>
+            </select>
+            <button type="submit" class="action-btn" style="width: 100%;">Cadastrar</button>
+        </form>
+        <button onclick="voltarLogin()" style="margin-top: 10px; background: #95a5a6; width: 100%; border: none; padding: 10px; color: white; cursor: pointer;">Voltar</button>
+    </div>
+
+    <div id="app-principal" class="layout" style="display: none;">
+        
+        <div class="sidebar">
+            <h2>RiskPlatform</h2>
+            <button class="menu-btn active" onclick="navegar('nova-vuln')">Nova Vulnerabilidade</button>
+            <button class="menu-btn" onclick="navegar('historico')">Histórico</button>
+            <button class="menu-btn" onclick="navegar('ia-chat')">Recomendação IA</button>
+            <div style="margin-top: auto; padding: 20px;">
+                <small id="user-display"></small><br>
+                <button onclick="logout()" style="background: #e74c3c; border: none; color: white; padding: 5px 10px; margin-top: 10px; cursor: pointer;">Sair</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <input type="hidden" id="idUsuarioLogado">
+
+            <div id="view-nova-vuln" class="tela ativa">
+                <h1>Registrar Nova Vulnerabilidade</h1>
+                <form id="formVulnerabilidade" style="max-width: 600px;">
+                    <label>Título</label>
+                    <input type="text" id="titulo" required>
+                    
+                    <label>Descrição Detalhada</label>
+                    <textarea id="descricao" rows="5" required></textarea>
+                    
+                    <label>Sistema Impactado</label>
+                    <input type="text" id="sistema_impactado">
+                    
+                    <label>Status Inicial</label>
+                    <select id="status">
+                        <option value="ABERTA">ABERTA</option>
+                        <option value="EM_ANDAMENTO">EM_ANDAMENTO</option>
+                    </select>
+                    
+                    <label>Vetor CVSS (Ex: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)</label>
+                    <input type="text" id="vectorString">
+                    
+                    <button type="submit" class="action-btn">Salvar Vulnerabilidade</button>
+                </form>
+            </div>
+
+            <div id="view-historico" class="tela">
+                <div style="display: flex; justify-content: space-between;">
+                    <h1>Histórico de Vulnerabilidades</h1>
+                    <button onclick="carregarHistorico()" class="action-btn" style="background: #3498db;">Atualizar</button>
+                </div>
+                <table id="tabelaHistorico">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Criticidade</th>
+                            <th>Status</th>
+                            <th>Status Rec.</th>
+                            <th>Recomendação IA</th> 
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-historico"></tbody>
+                </table>
+            </div>
+
+            <div id="view-ia-chat" class="tela">
+                <h1>Consultor de IA</h1>
+                <p>Selecione uma vulnerabilidade para que a IA analise a descrição e gere um plano de ação.</p>
+                
+                <div style="max-width: 800px;">
+                    <label>Escolha a Vulnerabilidade:</label>
+                    <select id="select-vuln-ia" onchange="mostrarDetalhesVuln()">
+                        <option value="">-- Selecione --</option>
+                    </select>
+
+                    <div id="detalhes-vuln" style="margin: 20px 0; padding: 15px; background: #fff3cd; border: 1px solid #ffeeba; display: none;">
+                        <strong>Descrição do Problema:</strong>
+                        <p id="desc-vuln-texto" style="font-style: italic;"></p>
+                    </div>
+
+                    <button onclick="pedirAjudaIA()" class="action-btn" id="btn-ask-ia" style="background: #8e44ad;">Gerar Recomendação com IA</button>
+
+                    <div class="chat-box">
+                        <strong>Resposta do Agente:</strong>
+                        <div id="resposta-ia-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

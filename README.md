@@ -1,6 +1,27 @@
 # Risk Security Platform
 
-Esse projeto é sobre um programa que, ao usuário colocar uma atividade desejada, calcula o risco dessa atividade e, através de uma resposta de um agente LLM, recebe uma sugestão de como contornar ou melhorar o risco dela.
+Esse projeto é sobre um programa que permite ao usuário colocar uma atividade desejada para ser calculada o risco dessa atividade e, através de uma resposta de um agente LLM, recebe uma sugestão de como contornar ou melhorar o risco dela.
+
+# Motivações
+
+Para a conclusão desse trabalho, foram colocadas algumas obrigatoriedades para o aprendizado ideal da disciplina cursada. Logo, foram separadas certas funcionalidades do programa entre "utilizará SQL" ou "utilizará NoSQL".
+
+## SQL
+
+O banco SQL que usaremos será o PostgreSQL para todas as situações descritas abaixo.
+
+As partes do programa que serão armazenadas em PostgreSQL são:
+- Informações do Usuário: nome, e-mail, senha, atividade (se está ativo ou não), data de criação da conta e o tipo (se é analista de segurança ou gestor)
+- Métricas CVSS: o vetor de string (CVSS, AV ou AC) e a vulnerabilidade
+- RAG do Agente LLM: guardará os vetores embedding dos textos que serão usados pelo agente
+
+## NoSQL
+
+O banco NoSQL que usaremos será o MongoDB para todas as situações descritas abaixo.
+
+As partes do programa que serão armazenadas em MongoDB são:
+- Log de Acesso: data de criação do evento, o tipo de ação, o ip de origem, o recurso e se foi sucesso ou nao
+- Histórico das vulnerabilidades/recomendação da IA: a atividade que foi analisada, se foi respondida ou não e a resposta que foi dada pelo agente
 
 ## Passo a passo
 
@@ -67,16 +88,16 @@ Se estiver utilizando o VSCode como IDE, há necessidade de fazer os passos a se
 mvn -v
 ```
 5. Estarei utilizando o DBaaS Neon para o meu Postgre, porém é possível utilizar da forma que desejar
-6. No diretório do projeto "src/main/resources/", adicione um arquivo chamado ```application-local.properties``` e cole isso:
+6. No diretório do projeto "src/main/resources/", adicione um arquivo chamado ```application-local.properties``` e cole isso e substitua os valores para o seu caso:
 ```bash
 spring.datasource.url=jdbc:{STRING_URL}
 spring.datasource.username={USERNAME}
 spring.datasource.password={PASSWORD}
 ```
-Substitua os valores para o seu caso
 7. Rode:
 ```bash
 mvn clean install -DskipTests
+mvn clean package -DskipTests
 java -jar target/backend-vuln-0.0.1-SNAPSHOT.jar
 ```
 
