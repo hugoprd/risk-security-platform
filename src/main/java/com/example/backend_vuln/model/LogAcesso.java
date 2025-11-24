@@ -18,7 +18,13 @@ public class LogAcesso {
     private boolean sucesso;
     private LocalDateTime dataEvento;
 
-    public LogAcesso() {}
+    public LogAcesso(){}
+
+    public LogAcesso(String usuario, String acao){
+        this.dataHora = LocalDateTime.now();
+        this.usuario = usuario;
+        this.acao = acao;
+    }
 
     public String getId(){
         return id;
