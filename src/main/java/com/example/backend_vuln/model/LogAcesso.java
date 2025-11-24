@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 
 @Document(collection = "log_acesso")
 public class LogAcesso {
-
     @Id
     private String id;
 
@@ -20,12 +19,6 @@ public class LogAcesso {
     private LocalDateTime dataEvento;
 
     public LogAcesso() {}
-
-    public LogAcesso(String usuario, String acao) {
-        this.dataHora = LocalDateTime.now();
-        this.usuario = usuario;
-        this.acao = acao;
-    }
 
     public String getId(){
         return id;
