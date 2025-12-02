@@ -37,7 +37,9 @@ Funcionalidades escolhidas:
 
 ## Segunda Mediação dos Testes de Carga
 
-TODO: CONTINUAR ESCREVENDO E ANEXAR O DOC
+A segunda mediação foi para melhorarmos nosso programa, com base no resultado da primeira mediação. Através dos gargalos e situações com pouca performance, alteramos os algoritmos para melhorar o programa como um todo. Para visualizar um relatório específico à ela, clique [aqui](./docs/tests/MEDICAO_DO_SLA_02.pdf).
+
+As funcionalidades escolhidas foram as mesmas que a da primeira mediação.
 
 ## Passo a passo
 
