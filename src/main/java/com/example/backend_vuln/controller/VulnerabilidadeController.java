@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.example.backend_vuln.model.Usuario;
 import com.example.backend_vuln.repository.UsuarioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,7 +32,7 @@ public class VulnerabilidadeController {
     // --- Injeção do serviço de IA ---
     @Autowired
     private com.example.backend_vuln.service.IAService iaService;
-    // -------------------------------------------------
+   
 
     // UC01: Cadastrar Nova Vulnerabilidade
     @PostMapping("/usuario/{idUsuario}")
@@ -39,7 +43,7 @@ public class VulnerabilidadeController {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
 
-        // 2. Seta o usuário na vulnerabilidade
+        // 2. Seta o usuario na vulnerabilidade
         novaVulnerabilidade.setUsuario(usuario);
 
         // 3. Calcula e preenche o CVSS
@@ -53,14 +57,20 @@ public class VulnerabilidadeController {
     }
 
 
-    // UC02: Listar Todas as Vulnerabilidades
+    // UC02: Listar Todas as vulnerabilidades
     @GetMapping
-    public List<Vulnerabilidade> listarVulnerabilidades() {
-        return repository.findAll();
+    public Page<Vulnerabilidade> listarVulnerabilidades(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        // Cria a "fatia" de dados (Página X, Tamanho 20)
+        Pageable paginacao = PageRequest.of(page, size);
+
+        return repository.findAll(paginacao);
     }
 
 
-    //UC05: Visualizar Detalhes de uma Vulnerabilidade
+    //UC05: Visualizar detalhes de uma vlnerabilidade
     @GetMapping("/{id}")
     public Vulnerabilidade buscarPorId(@PathVariable Long id) {
         // Usa o repository para buscar pelo ID
@@ -69,7 +79,7 @@ public class VulnerabilidadeController {
                 .orElseThrow(() -> new RuntimeException("Vulnerabilidade não encontrada com id: " + id));
     }
 
-    // UC04: Editar Vulnerabilidade e Atualizar Status
+    // UC04: Editar Vulnerabilidade eatualizar Status
     @PutMapping("/{id}")
     public Vulnerabilidade atualizarVulnerabilidade(@PathVariable Long id, @RequestBody Vulnerabilidade dadosAtualizados) {
 
@@ -117,16 +127,16 @@ public class VulnerabilidadeController {
         return "Vulnerabilidade com id " + id + " foi deletada com sucesso.";
     }
 
+    // intregacao com a IA
     @PostMapping("/{id}/recomendacao")
-    public String gerarRecomendacao(@PathVariable Long id){
+    public String gerarRecomendacao(@PathVariable Long id) {
+        // Busca a vulnerabilidade
         Vulnerabilidade vul = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vulnerabilidade não encontrada"));
 
-        String textoRecomendacao = iaService.gerarRecomendacao(vul);
-
-        vul.setRecomendacao(textoRecomendacao);
-        repository.save(vul);
-
-        return textoRecomendacao;
+        // Chama o servico Wrapper
+        return iaService.gerarRecomendacao(vul);
     }
+    
+
 }
