@@ -101,18 +101,27 @@ Se estiver utilizando o VSCode como IDE, há necessidade de fazer os passos a se
 1. Instale o [Apache Maven](https://maven.apache.org/download.cgi)
 2. Descompacte a pasta .zip
 3. Mova a pasta para C:/ProgramFiles/Apache/Maven/ (se esse diretório não existir pode criar manualmente)
-4. No terminal bash do VSCode, digite 
+4. Abra/crie o arquivo de configuração de perfil
 ```bash
+nano ~/.bashrc
+```
+5. Cole o conteúdo a seguir no arquivo (altere com base na versão Maven instalada), saia e salve do nano (CTRL + X + Y + ENTER)
+```bash
+export PATH=$PATH:"/c/Program Files/Apache/Maven/apache-maven-3.9.11/bin"
+```
+6. Ative imediatamente e rode
+```bash
+source ~/.bashrc
 mvn -v
 ```
-5. Estarei utilizando o DBaaS Neon para o meu Postgre, porém é possível utilizar da forma que desejar
-6. No diretório do projeto "src/main/resources/", adicione um arquivo chamado ```application-local.properties``` e cole isso e substitua os valores para o seu caso:
+7. Estarei utilizando o DBaaS Neon para o meu Postgre, porém é possível utilizar da forma que desejar
+8. No diretório do projeto "src/main/resources/", adicione um arquivo chamado ```application-local.properties``` e cole isso e substitua os valores para o seu caso:
 ```bash
 spring.datasource.url=jdbc:{STRING_URL}
 spring.datasource.username={USERNAME}
 spring.datasource.password={PASSWORD}
 ```
-7. Rode:
+9. Rode:
 ```bash
 mvn clean install -DskipTests
 mvn clean package -DskipTests
