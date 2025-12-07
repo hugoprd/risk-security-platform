@@ -105,7 +105,7 @@ Se estiver utilizando o VSCode como IDE, há necessidade de fazer os passos a se
 ```bash
 nano ~/.bashrc
 ```
-5. Cole o conteúdo a seguir no arquivo (altere com base na versão Maven instalada), saia e salve do nano (CTRL + X + Y + ENTER)
+5. Cole o conteúdo a seguir no arquivo (altere com base na versão Maven instalada), saia e salve do nano (CTRL + X)(Y + ENTER)
 ```bash
 export PATH=$PATH:"/c/Program Files/Apache/Maven/apache-maven-3.9.11/bin"
 ```
