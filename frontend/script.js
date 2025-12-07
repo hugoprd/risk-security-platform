@@ -154,10 +154,34 @@ async function carregarHistorico(){
     
     try{
         const res = await fetch(`${API_BASE}/api/vulnerabilidades`);
-        const lista = await res.json();
+        
+        if (!res.ok) {
+             throw new Error(`Erro na API: ${res.status}`);
+        }
+
+        const dados = await res.json();
+        
+        console.log("Dados recebidos do Backend:", dados); 
+
+        let lista = [];
+
+        if(Array.isArray(dados)){
+            lista = dados;
+        }
+        else if(dados.content && Array.isArray(dados.content)){
+            lista = dados.content;
+        }
+        else{
+            console.error("O backend não retornou uma lista!", dados);
+            tbody.innerHTML = "<tr><td colspan='6' style='color:orange'>Formato de resposta inválido. Verifique o console (F12).</td></tr>";
+            
+            return;
+        }
+
         vulnerabilidadesCache = lista; 
         
         tbody.innerHTML = "";
+        
         if(lista.length === 0){
             tbody.innerHTML = "<tr><td colspan='6'>Nada encontrado.</td></tr>";
             
@@ -189,8 +213,8 @@ async function carregarHistorico(){
         });
     }
     catch(err){
-        tbody.innerHTML = "<tr><td colspan='6' style='color:red'>Erro ao carregar histórico.</td></tr>";
-        console.error(err);
+        tbody.innerHTML = `<tr><td colspan='6' style='color:red'>Erro ao carregar: ${err.message}</td></tr>`;
+        console.error("Erro completo:", err);
     }
 }
 

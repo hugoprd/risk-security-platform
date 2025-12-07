@@ -16,6 +16,7 @@ public class MetricasCVSS {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fk_id_vulnerabilidade", nullable = false)
     @JsonIgnore
+    // @com.fasterxml.jackson.annotation.JsonBackReference
     private Vulnerabilidade vulnerabilidade;
 
 

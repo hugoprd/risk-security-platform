@@ -10,11 +10,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LlmAgentClient{
-    private static final String AGENT_URL = "https://hugoprd-security-llm-agent.hf.space/generate-suggestion";
+    // comentar qual das maneiras nao vai querer usar
+    // private static final String AGENT_URL = "https://hugoprd-security-llm-agent.hf.space/generate-suggestion"; // <- pro hugging face
+    private static final String AGENT_URL = "http://127.0.0.1:8000/generate-suggestion"; // <- pro local
     private static final HttpClient client = HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_2)
-            .connectTimeout(Duration.ofSeconds(30)) // serve apenas como um Timeout para uma possível 
-            .build();                               // reconexão (30seg)
+            .version(HttpClient.Version.HTTP_1_1) 
+            .connectTimeout(Duration.ofSeconds(30))
+            .build();
+            // .version(HttpClient.Version.HTTP_2)
+            // .connectTimeout(Duration.ofSeconds(30)) // serve apenas como um Timeout para uma possível 
+            // .build();                               // reconexão (30seg)
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     
@@ -58,8 +63,7 @@ public class LlmAgentClient{
 
     public static void main(String[] args){
         LlmAgentClient agent = new LlmAgentClient();
-        String userInput = ""; // aqui tem que colocar o input do usuário, o que ele quer analisar e etc
-        // TODO: fazer esse link: colocar o input do usuário para ca
+        String userInput = "";
         
         System.out.println("Enviando pedido para a IA...");
         String jsonResponse = agent.getSuggestion(userInput);

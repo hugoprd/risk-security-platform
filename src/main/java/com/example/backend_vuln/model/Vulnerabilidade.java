@@ -1,5 +1,6 @@
 package com.example.backend_vuln.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -13,6 +14,7 @@ public class Vulnerabilidade {
 
     @Column(nullable = false)
     private String titulo;
+    @Column(length = 1024)
     private String descricao;
     private String sistema_impactado;
     private String cve;
@@ -20,6 +22,7 @@ public class Vulnerabilidade {
     private String status;
     private Double pontuacao_cvss;
     private String criticidade;
+    private String statusRec;
 
     @Column(columnDefinition = "TEXT")
     private String recomendacao;
@@ -29,12 +32,14 @@ public class Vulnerabilidade {
     // CascadeType.ALL significa: "Quando eu salvar/apagar uma Vulnerabilidade,
     // salve/apague as MetricasCVSS junto."
     @OneToOne(mappedBy = "vulnerabilidade", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // @com.fasterxml.jackson.annotation.JsonManagedReference
     private MetricasCVSS metricasCVSS;
 
     // Relação N:1 com Usuario (Muitas vulnerabilidades para 1 usuário)
     @ManyToOne
     @JoinColumn(name = "fk_id_usuario")
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnore
     private Usuario usuario;
 
     public Usuario getUsuario() {
@@ -89,6 +94,14 @@ public class Vulnerabilidade {
 
     public void setCve(String cve) {
         this.cve = cve;
+    }
+
+    public String getStatusRec() {
+        return statusRec;
+    }
+
+    public void setStatusRec(String statusRec) {
+        this.statusRec = statusRec;
     }
 
     public LocalDateTime getData_registro() {

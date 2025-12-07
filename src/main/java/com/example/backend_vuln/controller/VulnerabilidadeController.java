@@ -11,6 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,22 +40,20 @@ public class VulnerabilidadeController {
     // UC01: Cadastrar Nova Vulnerabilidade
     @PostMapping("/usuario/{idUsuario}")
     public Vulnerabilidade cadastrarVulnerabilidade(@PathVariable Long idUsuario,
-                                                    @RequestBody Vulnerabilidade novaVulnerabilidade) {
+                                                    @RequestBody Vulnerabilidade novaVulnerabilidade){
 
-        // 1. Busca o usuário no banco
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
 
-        // 2. Seta o usuario na vulnerabilidade
         novaVulnerabilidade.setUsuario(usuario);
 
-        // 3. Calcula e preenche o CVSS
+        if(novaVulnerabilidade.getMetricasCVSS() != null){
+            novaVulnerabilidade.getMetricasCVSS().setVulnerabilidade(novaVulnerabilidade);
+        }
         cvssService.calcularEPreencherCvss(novaVulnerabilidade);
 
-        // 4. Define a data de registro
         novaVulnerabilidade.setData_registro(LocalDateTime.now());
 
-        // 5. Salva no banco
         return repository.save(novaVulnerabilidade);
     }
 
@@ -129,14 +130,35 @@ public class VulnerabilidadeController {
 
     // intregacao com a IA
     @PostMapping("/{id}/recomendacao")
-    public String gerarRecomendacao(@PathVariable Long id) {
-        // Busca a vulnerabilidade
-        Vulnerabilidade vul = repository.findById(id)
+    public ResponseEntity<String> gerarRecomendacao(@PathVariable Long id){
+        Vulnerabilidade vulnerabilidade = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vulnerabilidade não encontrada"));
 
-        // Chama o servico Wrapper
-        return iaService.gerarRecomendacao(vul);
-    }
-    
+        LlmAgentClient agent = new LlmAgentClient();
+        
+        String jsonResposta = agent.getSuggestion(vulnerabilidade.getDescricao());
 
+        String recomendacaoFinal = "";
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(jsonResposta);
+            
+            if(root.has("suggestion")){
+                recomendacaoFinal = root.get("suggestion").asText();
+            }
+            else{
+                recomendacaoFinal = jsonResposta;
+            }
+        }
+        catch(Exception e){
+            recomendacaoFinal = jsonResposta;
+        }
+
+        vulnerabilidade.setRecomendacao(recomendacaoFinal);
+        vulnerabilidade.setStatusRec("Analisado");
+
+        repository.save(vulnerabilidade); 
+
+        return ResponseEntity.ok(recomendacaoFinal);
+    }
 }
